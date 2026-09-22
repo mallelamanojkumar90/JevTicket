@@ -1,0 +1,352 @@
+[
+  {
+    "ticket_id": "T001",
+    "message": "Payment was deducted twice from my account. Please reverse the duplicate charge.",
+    "category": "BILLING",
+    "urgent": false,
+    "severity": 4
+  },
+  {
+    "ticket_id": "T002",
+    "message": "I need a copy of my invoice for last month.",
+    "category": "BILLING",
+    "urgent": false,
+    "severity": 2
+  },
+  {
+    "ticket_id": "T003",
+    "message": "Our annual subscription renewed at the wrong price and finance needs this fixed today.",
+    "category": "BILLING",
+    "urgent": true,
+    "severity": 4
+  },
+  {
+    "ticket_id": "T004",
+    "message": "My refund was approved two weeks ago but the money has not arrived.",
+    "category": "BILLING",
+    "urgent": false,
+    "severity": 3
+  },
+  {
+    "ticket_id": "T005",
+    "message": "Please update the billing email on our account.",
+    "category": "BILLING",
+    "urgent": false,
+    "severity": 1
+  },
+  {
+    "ticket_id": "T006",
+    "message": "We were charged for 25 seats but only have 10 active users.",
+    "category": "BILLING",
+    "urgent": false,
+    "severity": 3
+  },
+  {
+    "ticket_id": "T007",
+    "message": "The card on file expired and our service will be suspended tonight unless payment is updated.",
+    "category": "BILLING",
+    "urgent": true,
+    "severity": 4
+  },
+  {
+    "ticket_id": "T008",
+    "message": "Can you explain the tax line on our latest receipt?",
+    "category": "BILLING",
+    "urgent": false,
+    "severity": 1
+  },
+  {
+    "ticket_id": "T009",
+    "message": "A failed payment is blocking our production account. We need help immediately.",
+    "category": "BILLING",
+    "urgent": true,
+    "severity": 5
+  },
+  {
+    "ticket_id": "T010",
+    "message": "Please cancel the extra add-on that was added by mistake.",
+    "category": "BILLING",
+    "urgent": false,
+    "severity": 2
+  },
+  {
+    "ticket_id": "T011",
+    "message": "The invoice total does not match the quote we signed.",
+    "category": "BILLING",
+    "urgent": false,
+    "severity": 3
+  },
+  {
+    "ticket_id": "T012",
+    "message": "Our bank rejected the charge and payroll reporting is due in one hour.",
+    "category": "BILLING",
+    "urgent": true,
+    "severity": 4
+  },
+  {
+    "ticket_id": "T013",
+    "message": "I want to switch from monthly to yearly billing.",
+    "category": "BILLING",
+    "urgent": false,
+    "severity": 1
+  },
+  {
+    "ticket_id": "T014",
+    "message": "The dashboard shows a 500 error for every user after the latest update.",
+    "category": "TECHNICAL",
+    "urgent": true,
+    "severity": 5
+  },
+  {
+    "ticket_id": "T015",
+    "message": "I cannot reset my password because the reset link says it is invalid.",
+    "category": "TECHNICAL",
+    "urgent": false,
+    "severity": 3
+  },
+  {
+    "ticket_id": "T016",
+    "message": "File uploads keep timing out for our support team.",
+    "category": "TECHNICAL",
+    "urgent": false,
+    "severity": 3
+  },
+  {
+    "ticket_id": "T017",
+    "message": "Our API integration is returning authentication errors in production.",
+    "category": "TECHNICAL",
+    "urgent": true,
+    "severity": 5
+  },
+  {
+    "ticket_id": "T018",
+    "message": "The export button does nothing when I click it.",
+    "category": "TECHNICAL",
+    "urgent": false,
+    "severity": 2
+  },
+  {
+    "ticket_id": "T019",
+    "message": "Emails from the system are arriving with broken links.",
+    "category": "TECHNICAL",
+    "urgent": false,
+    "severity": 3
+  },
+  {
+    "ticket_id": "T020",
+    "message": "The mobile app crashes every time our drivers open a delivery task.",
+    "category": "TECHNICAL",
+    "urgent": true,
+    "severity": 4
+  },
+  {
+    "ticket_id": "T021",
+    "message": "Search results are missing records that are visible in the database.",
+    "category": "TECHNICAL",
+    "urgent": false,
+    "severity": 3
+  },
+  {
+    "ticket_id": "T022",
+    "message": "Our webhook has not fired for any order since 9 AM.",
+    "category": "TECHNICAL",
+    "urgent": true,
+    "severity": 4
+  },
+  {
+    "ticket_id": "T023",
+    "message": "The page layout looks strange in Safari but still works.",
+    "category": "TECHNICAL",
+    "urgent": false,
+    "severity": 2
+  },
+  {
+    "ticket_id": "T024",
+    "message": "Users are being logged out every few minutes.",
+    "category": "TECHNICAL",
+    "urgent": true,
+    "severity": 4
+  },
+  {
+    "ticket_id": "T025",
+    "message": "The CSV import accepts the file but skips several rows without an error.",
+    "category": "TECHNICAL",
+    "urgent": false,
+    "severity": 3
+  },
+  {
+    "ticket_id": "T026",
+    "message": "None of our employees can log in and we are blocked from serving customers.",
+    "category": "TECHNICAL",
+    "urgent": true,
+    "severity": 5
+  },
+  {
+    "ticket_id": "T027",
+    "message": "Can someone explain the difference between the Pro and Enterprise plans?",
+    "category": "SALES",
+    "urgent": false,
+    "severity": 1
+  },
+  {
+    "ticket_id": "T028",
+    "message": "We want pricing for 200 users and need a quote before our budget meeting tomorrow.",
+    "category": "SALES",
+    "urgent": true,
+    "severity": 3
+  },
+  {
+    "ticket_id": "T029",
+    "message": "Please schedule a demo for our operations team.",
+    "category": "SALES",
+    "urgent": false,
+    "severity": 1
+  },
+  {
+    "ticket_id": "T030",
+    "message": "Do you offer discounts for nonprofits?",
+    "category": "SALES",
+    "urgent": false,
+    "severity": 1
+  },
+  {
+    "ticket_id": "T031",
+    "message": "Our trial ends today and we need help choosing the right paid plan.",
+    "category": "SALES",
+    "urgent": true,
+    "severity": 2
+  },
+  {
+    "ticket_id": "T032",
+    "message": "Can we add single sign-on to the business plan?",
+    "category": "SALES",
+    "urgent": false,
+    "severity": 2
+  },
+  {
+    "ticket_id": "T033",
+    "message": "A procurement form is required before we can purchase. Who should receive it?",
+    "category": "SALES",
+    "urgent": false,
+    "severity": 2
+  },
+  {
+    "ticket_id": "T034",
+    "message": "We are comparing vendors this afternoon and need security questionnaire answers now.",
+    "category": "SALES",
+    "urgent": true,
+    "severity": 3
+  },
+  {
+    "ticket_id": "T035",
+    "message": "I would like to upgrade from Starter to Team.",
+    "category": "SALES",
+    "urgent": false,
+    "severity": 1
+  },
+  {
+    "ticket_id": "T036",
+    "message": "Can your product support multiple brands under one account?",
+    "category": "SALES",
+    "urgent": false,
+    "severity": 1
+  },
+  {
+    "ticket_id": "T037",
+    "message": "We need a signed order form by end of day to close this quarter.",
+    "category": "SALES",
+    "urgent": true,
+    "severity": 3
+  },
+  {
+    "ticket_id": "T038",
+    "message": "Please have an account executive contact me about enterprise licensing.",
+    "category": "SALES",
+    "urgent": false,
+    "severity": 1
+  },
+  {
+    "ticket_id": "T039",
+    "message": "Where can I find your office mailing address?",
+    "category": "GENERAL",
+    "urgent": false,
+    "severity": 1
+  },
+  {
+    "ticket_id": "T040",
+    "message": "Do you have a public roadmap?",
+    "category": "GENERAL",
+    "urgent": false,
+    "severity": 1
+  },
+  {
+    "ticket_id": "T041",
+    "message": "I am not sure who to ask, but I need help understanding your support hours.",
+    "category": "GENERAL",
+    "urgent": false,
+    "severity": 1
+  },
+  {
+    "ticket_id": "T042",
+    "message": "Please delete a duplicate message I sent to support.",
+    "category": "GENERAL",
+    "urgent": false,
+    "severity": 1
+  },
+  {
+    "ticket_id": "T043",
+    "message": "Can you send me your data processing agreement?",
+    "category": "GENERAL",
+    "urgent": false,
+    "severity": 2
+  },
+  {
+    "ticket_id": "T044",
+    "message": "We need confirmation of your uptime policy before our audit call today.",
+    "category": "GENERAL",
+    "urgent": true,
+    "severity": 3
+  },
+  {
+    "ticket_id": "T045",
+    "message": "How do I change the language used in notification emails?",
+    "category": "GENERAL",
+    "urgent": false,
+    "severity": 2
+  },
+  {
+    "ticket_id": "T046",
+    "message": "I found an outdated help article and wanted to report it.",
+    "category": "GENERAL",
+    "urgent": false,
+    "severity": 1
+  },
+  {
+    "ticket_id": "T047",
+    "message": "Who can answer questions about your accessibility statement?",
+    "category": "GENERAL",
+    "urgent": false,
+    "severity": 1
+  },
+  {
+    "ticket_id": "T048",
+    "message": "Please point me to the latest product release notes.",
+    "category": "GENERAL",
+    "urgent": false,
+    "severity": 1
+  },
+  {
+    "ticket_id": "T049",
+    "message": "A customer is asking whether your company is SOC 2 compliant and needs an answer today.",
+    "category": "GENERAL",
+    "urgent": true,
+    "severity": 3
+  },
+  {
+    "ticket_id": "T050",
+    "message": "Can I speak with someone about partnership opportunities?",
+    "category": "GENERAL",
+    "urgent": false,
+    "severity": 1
+  }
+]
