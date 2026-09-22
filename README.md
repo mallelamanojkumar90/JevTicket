@@ -1,110 +1,151 @@
 # JevTicket
 
-JevTicket is a learning project for building a support-ticket decision router with **Jev by TypeSafe AI**.
-
-It takes a customer-support message, asks Jev for typed decisions, then uses normal Python code to route and escalate the ticket.
-
-## App Flow
+Visual learning project for building a **Jev by TypeSafe AI** support-ticket router.
 
 ```mermaid
 flowchart LR
-    A[Customer support message] --> B[Jev state]
-    B --> C{Jev decisions}
-    C --> D[Choice: category]
-    C --> E[Noul: urgency]
-    C --> F[Score: severity]
-    D --> G[Python router]
-    E --> H[Display urgency]
-    F --> I[Python escalation rule]
-    G --> J[Support queue]
-    I --> K{Escalate?}
-    K -->|Yes| L[Escalation flag]
-    K -->|No| M[Normal handling]
+    Ticket[Support ticket text] --> Jev[Jev typed decisions]
+    Jev --> Category[Category]
+    Jev --> Urgency[Urgency]
+    Jev --> Severity[Severity]
+    Category --> Route[Python route]
+    Severity --> Escalate[Python escalation]
+    Route --> Queue[Support queue]
+    Escalate --> Outcome[Escalation flag]
 ```
 
-## Responsibility Split
+## Big Picture
 
 ```mermaid
 flowchart TB
-    subgraph Jev["Jev / TypeSafe AI"]
-        A1[Read ticket state]
-        A2[Choose category]
-        A3[Estimate urgency probability]
-        A4[Score severity]
+    subgraph Input["Input"]
+        A[Customer message]
     end
 
-    subgraph Python["Normal Python"]
-        B1[Load config]
-        B2[Validate typed outputs]
-        B3[Route by category]
-        B4[Escalate if severity is 4 or 5]
-        B5[Render CLI and Streamlit UI]
-        B6[Evaluate metrics and calibration]
+    subgraph JevLayer["Jev decision layer"]
+        B[Choice: category]
+        C[Noul: urgency probability]
+        D[Score: severity]
     end
 
-    Jev --> Python
+    subgraph PythonLayer["Python business logic"]
+        E[Validate typed output]
+        F[Route to team]
+        G[Escalate if severity is 4 or 5]
+    end
+
+    subgraph Interfaces["Ways to use it"]
+        H[Terminal app]
+        I[Streamlit UI]
+        J[Evaluation runner]
+    end
+
+    A --> B
+    A --> C
+    A --> D
+    B --> E
+    C --> E
+    D --> E
+    E --> F
+    E --> G
+    F --> H
+    F --> I
+    F --> J
+    G --> H
+    G --> I
+    G --> J
 ```
 
-## Decisions
+## Decision Flow
 
-| Decision | Jev type | Output | Used for |
+```mermaid
+sequenceDiagram
+    participant User
+    participant App as Python app
+    participant Jev
+    participant Router as Python router
+
+    User->>App: Enter support ticket
+    App->>Jev: Send ticket as state
+    Jev-->>App: Choice category
+    Jev-->>App: Noul urgency probability
+    Jev-->>App: Score severity
+    App->>Router: Pass typed decision object
+    Router-->>App: Team, queue, escalation
+    App-->>User: Display analysis and route
+```
+
+## Jev Decisions
+
+| Question | Jev type | Example output | Meaning |
 | --- | --- | --- | --- |
-| Category | `Choice` | `BILLING`, `TECHNICAL`, `SALES`, `GENERAL` | Routing |
-| Urgency | `Noul` | probability from `0` to `1` | Displaying urgent `YES` or `NO` |
-| Severity | `Score` | level converted to `1..5` | Escalation |
+| Which team should handle this? | `Choice` | `BILLING` | One label from a fixed list |
+| Is it urgent? | `Noul` | `0.82` | Probability of yes |
+| How severe is it? | `Score` | `4 / 5` | Ordered severity level |
 
-## Routing Rules
+## Routing Flow
 
 ```mermaid
 flowchart TD
-    A[Category] --> B{Value}
+    A[Category from Jev] --> B{Category}
     B -->|BILLING| C[billing-support]
     B -->|TECHNICAL| D[technical-support]
     B -->|SALES| E[sales]
     B -->|GENERAL| F[general-support]
 
-    G[Displayed severity] --> H{Severity >= 4?}
-    H -->|Yes| I[Escalate]
-    H -->|No| J[Do not escalate]
+    G[Severity from Jev] --> H{Displayed severity}
+    H -->|1, 2, 3| I[No escalation]
+    H -->|4, 5| J[Escalate]
 ```
 
 ## Project Map
 
 ```mermaid
 flowchart LR
-    A[app.py] --> C[jev_client.py]
-    B[streamlit_app.py] --> C
-    C --> D[models.py]
-    A --> E[router.py]
-    B --> E
-    F[evaluate.py] --> C
-    F --> G[evaluation_data.py]
-    F --> H[metrics.py]
-    F --> I[calibration.py]
-    G --> J[data/labeled_tickets.json]
-    K[tests/] --> D
-    K --> E
-    K --> G
-    K --> H
-    K --> I
+    app[app.py] --> client[jev_client.py]
+    ui[streamlit_app.py] --> client
+    client --> models[models.py]
+    app --> router[router.py]
+    ui --> router
+
+    eval[evaluate.py] --> client
+    eval --> data[evaluation_data.py]
+    eval --> metrics[metrics.py]
+    eval --> cal[calibration.py]
+    data --> labels[data/labeled_tickets.json]
+
+    tests[tests] --> models
+    tests --> router
+    tests --> metrics
+    tests --> cal
+    tests --> data
 ```
 
-## File Guide
+## Files At A Glance
 
-| File | Purpose |
+| File | Role |
 | --- | --- |
-| `app.py` | Terminal demo app |
-| `streamlit_app.py` | Streamlit UI |
-| `jev_client.py` | TypeSafe SDK integration |
-| `models.py` | Categories, severity rubric, typed decision model |
-| `router.py` | Deterministic category routing and escalation |
-| `data/labeled_tickets.json` | 50 labeled examples |
-| `evaluate.py` | Runs Jev on the labeled dataset |
+| `app.py` | Terminal demo |
+| `streamlit_app.py` | Browser UI |
+| `jev_client.py` | TypeSafe SDK and Jev questions |
+| `models.py` | Typed categories, severity rubric, decision model |
+| `router.py` | Team routing and escalation rule |
+| `evaluate.py` | Runs labeled evaluation |
 | `metrics.py` | Accuracy, precision, recall, F1 |
-| `calibration.py` | Calibration bins and expected calibration error |
+| `calibration.py` | Confidence calibration |
+| `data/labeled_tickets.json` | 50 labeled examples |
 | `tests/` | Unit tests |
 
-## Setup
+## Quick Start
+
+```mermaid
+flowchart LR
+    A[Create venv] --> B[Install requirements]
+    B --> C[Add TYPESAFE_API_KEY]
+    C --> D[Run terminal app]
+    C --> E[Run Streamlit UI]
+    C --> F[Run evaluation]
+```
 
 Create and activate a virtual environment:
 
@@ -119,29 +160,23 @@ Install dependencies:
 python -m pip install -r requirements.txt
 ```
 
-Create a `.env` file from `.env.example`:
+Create `.env`:
 
 ```text
 TYPESAFE_API_KEY=your_typesafe_api_key_here
 ```
 
-Never commit `.env`; it is ignored by `.gitignore`.
+## Run
 
-## Run The App
+| Use case | Command |
+| --- | --- |
+| Terminal demo | `python app.py` |
+| Streamlit UI | `python -m streamlit run streamlit_app.py` |
+| Full evaluation | `python evaluate.py` |
+| Small evaluation smoke test | `python evaluate.py --limit 5` |
+| Unit tests | `python -m unittest discover` |
 
-Terminal version:
-
-```powershell
-python app.py
-```
-
-Streamlit UI:
-
-```powershell
-python -m streamlit run streamlit_app.py
-```
-
-Expected output shape:
+## Example Output
 
 ```text
 Input:
@@ -163,70 +198,53 @@ Route to the billing support team.
 ## Evaluation Flow
 
 ```mermaid
-flowchart LR
-    A[50 labeled tickets] --> B[evaluate.py]
-    B --> C[Jev predictions]
-    C --> D[Compare to labels]
-    D --> E[Accuracy]
-    D --> F[Precision / Recall / F1]
-    D --> G[Severity within-one accuracy]
-    D --> H[Calibration bins]
+flowchart TB
+    A[50 labeled tickets] --> B[Call Jev for each ticket]
+    B --> C[Predictions]
+    C --> D[Compare with labels]
+    D --> E[Category metrics]
+    D --> F[Urgency metrics]
+    D --> G[Severity metrics]
+    D --> H[Escalation metrics]
+    D --> I[Calibration analysis]
 ```
 
-Run the full labeled evaluation:
+Metrics reported:
 
-```powershell
-python evaluate.py
-```
+| Area | Metrics |
+| --- | --- |
+| Category | accuracy, precision, recall, F1 |
+| Urgency | accuracy, precision, recall, F1 |
+| Severity | accuracy, precision, recall, F1, within-one accuracy |
+| Escalation | accuracy, precision, recall, F1 |
+| Confidence | calibration bins, expected calibration error |
 
-Run a smaller smoke evaluation:
-
-```powershell
-python evaluate.py --limit 5
-```
-
-The evaluator reports metrics for:
-
-- category
-- urgency
-- severity
-- escalation
-- severity within-one accuracy
-- confidence calibration
-
-## Calibration
-
-Calibration asks:
-
-```text
-When Jev says it is about 80% confident, is it correct about 80% of the time?
-```
+## Calibration Flow
 
 ```mermaid
-flowchart TD
-    A[Jev confidence] --> B[Group into confidence bins]
-    C[Correct / incorrect predictions] --> B
-    B --> D[Average confidence per bin]
-    B --> E[Actual accuracy per bin]
+flowchart LR
+    A[Jev confidence] --> B[Confidence bins]
+    C[Correctness] --> B
+    B --> D[Average confidence]
+    B --> E[Actual accuracy]
     D --> F[Expected calibration error]
     E --> F
 ```
 
-Lower expected calibration error is better. With only 50 tickets, treat this as a learning diagnostic rather than a final benchmark.
+Calibration asks whether confidence matches reality. If Jev is about `80%` confident, a well-calibrated system should be correct about `80%` of the time in that bin.
 
-## Tests
+## Learning Notes
 
-Run all tests:
-
-```powershell
-python -m unittest discover
+```mermaid
+flowchart TB
+    A[Jev is used for decisions] --> B[Typed outputs]
+    B --> C[Application code uses those outputs]
+    C --> D[Metrics evaluate behavior]
+    D --> E[Calibration evaluates confidence]
 ```
 
-The tests cover routing, models, labeled data, metrics, and calibration.
-
-## Notes
-
-- Jev is in early access and requires a TypeSafe API key.
-- The official Python package used here is `typesafe-sdk`.
-- The app uses `TYPESAFE_API_KEY` and `TYPESAFE_DEFAULT_MODEL`.
-- The TypeSafe SDK reports `Score` levels as zero-based indexes; this project converts them to the learning scale `1..5`.
+- Jev decisions are typed: `Choice`, `Noul`, and `Score`.
+- Python does the deterministic routing and escalation.
+- `.env` stores the TypeSafe API key and must not be committed.
+- The TypeSafe SDK reports `Score` indexes as `0..4`; this project converts them to `1..5`.
+- The 50 labeled tickets are for evaluation, not training.
