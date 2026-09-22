@@ -1,26 +1,20 @@
 # JevTicket
 
-Phase 8 of a small support-ticket decision app for learning Jev by TypeSafe AI.
+JevTicket is a small support-ticket decision and routing app built for learning Jev by TypeSafe AI.
 
-This phase proves the first useful app workflow:
-
-```text
-support ticket -> Jev questions -> category + urgency + severity -> Python router -> support queue + escalation
-```
-
-## What Phase 4 Does
-
-The app sends one test support ticket to Jev:
+It demonstrates this workflow:
 
 ```text
-Payment was deducted twice from my account.
+support ticket -> Jev decisions -> Python routing -> evaluation metrics
 ```
 
-It asks Jev three typed questions:
+## What It Does
 
-- a `Choice` question: which category is this ticket?
-- a `Noul` question: does this ticket require urgent attention?
-- a `Score` question: how severe is this ticket on a 1 to 5 scale?
+Given a customer-support message, the app asks Jev three typed questions:
+
+- `Choice`: classify the ticket category
+- `Noul`: estimate whether the ticket is urgent
+- `Score`: rate severity on a 1 to 5 scale
 
 The allowed categories are:
 
@@ -29,18 +23,7 @@ The allowed categories are:
 - `SALES`
 - `GENERAL`
 
-The Python application prints the selected category. If Jev returns confidence or probabilities for the choice, the app prints those too.
-
-For urgency, Jev returns a yes-probability from `0` to `1`. The app displays:
-
-- `Urgent: YES` when the probability is at least `0.5`
-- `Urgent: NO` when the probability is below `0.5`
-
-`Noul` returns a probability, not a separate confidence value.
-
-For severity, Jev returns a probability-weighted score over the five rubric levels. The SDK reports level indexes as `0..4`, and the app converts them to the learning scale `1..5`. The app displays the nearest integer as `Severity: n / 5` and also prints any score probability/confidence values returned by Jev.
-
-Then normal Python code routes the ticket:
+Normal Python code then routes the ticket:
 
 - `BILLING` -> `billing-support`
 - `TECHNICAL` -> `technical-support`
@@ -51,6 +34,33 @@ Normal Python code also decides escalation:
 
 - displayed severity `4` or `5` -> escalate
 - displayed severity `1`, `2`, or `3` -> do not escalate
+
+## Project Structure
+
+```text
+JevTicket/
+├── app.py
+├── streamlit_app.py
+├── jev_client.py
+├── models.py
+├── router.py
+├── config.py
+├── evaluation_data.py
+├── evaluate.py
+├── metrics.py
+├── calibration.py
+├── data/
+│   └── labeled_tickets.json
+├── tests/
+│   ├── test_calibration.py
+│   ├── test_evaluation_data.py
+│   ├── test_metrics.py
+│   ├── test_models.py
+│   └── test_router.py
+├── requirements.txt
+├── .env.example
+└── README.md
+```
 
 ## Setup
 
@@ -67,11 +77,13 @@ Install dependencies:
 python -m pip install -r requirements.txt
 ```
 
-Create a `.env` file from `.env.example` and set your TypeSafe API key:
+Create a `.env` file from `.env.example`:
 
 ```text
 TYPESAFE_API_KEY=your_typesafe_api_key_here
 ```
+
+Never commit `.env`; it is ignored by `.gitignore`.
 
 ## Run
 
@@ -87,7 +99,7 @@ Streamlit UI:
 python -m streamlit run streamlit_app.py
 ```
 
-Expected shape of the output:
+Expected output shape:
 
 ```text
 Input:
@@ -106,48 +118,43 @@ Escalate: YES
 Route to the billing support team.
 ```
 
-If Jev returns confidence or probabilities through the API response, they will be printed after the category. The app does not invent probability values.
+If Jev returns confidence or probability information, the app prints it. The app does not fabricate confidence values.
 
-## Jev-Specific Code
+## Jev Concepts Used
 
-The Jev-specific part is in `jev_client.py`.
+The Jev-specific code lives in `jev_client.py`.
 
 It sends:
 
-- `state`: the ticket text
-- `questions`: one typed SDK `Choice` question named `category`
-- `questions`: one typed SDK `Noul` question named `urgent`
-- `questions`: one typed SDK `Score` question named `severity`
-- `criteria`: the four allowed category labels and their meanings
+- `state`: the support ticket text
+- `Choice`: category decision
+- `Noul`: urgency probability
+- `Score`: severity rating
 
-The rest is normal Python:
+The normal Python code handles:
 
 - loading `.env`
-- creating a TypeSafe SDK client
-- validating the returned category
-- routing the ticket in `router.py`
-- deciding escalation in normal Python
-- printing the result
+- validating returned values
+- routing tickets
+- deciding escalation
+- rendering terminal and Streamlit output
+- calculating evaluation metrics
 
-## Streamlit UI
+One important detail: the TypeSafe SDK reports `Score` levels as zero-based indexes for the rubric. This project converts them to the learning scale `1..5`.
 
-Phase 5 adds `streamlit_app.py`. It uses the same `JevClient` and `route_ticket` logic as the terminal app, then displays the results with Streamlit metrics and probability charts.
+## Evaluation Dataset
 
-## Labeled Test Tickets
-
-Phase 6 adds `data/labeled_tickets.json` with 50 hand-labeled support tickets. Each example includes:
+`data/labeled_tickets.json` contains 50 hand-labeled support tickets. Each example includes:
 
 - `ticket_id`
 - `message`
 - expected `category`
 - expected `urgent` label
-- expected `severity` on the `1..5` scale
+- expected `severity`
 
-The dataset is for later evaluation. It is not used to train Jev or change Jev's decisions.
+The dataset is used for evaluation only. It does not train Jev or change Jev's decisions.
 
 ## Evaluation Metrics
-
-Phase 7 adds `evaluate.py` and `metrics.py`.
 
 Run the full labeled evaluation:
 
@@ -161,44 +168,59 @@ Run a smaller smoke evaluation:
 python evaluate.py --limit 5
 ```
 
-The evaluation calls Jev for each labeled ticket, then reports:
+The evaluator reports:
 
-- category macro accuracy, precision, recall, and F1
+- category accuracy, precision, recall, and F1
 - urgency accuracy, precision, recall, and F1
-- severity macro accuracy, precision, recall, and F1
+- severity accuracy, precision, recall, and F1
 - escalation accuracy, precision, recall, and F1
 - severity within-one accuracy
 
 ## Calibration Analysis
 
-Phase 8 adds confidence calibration analysis. Calibration asks:
+The evaluator also reports calibration bins and expected calibration error.
+
+Calibration asks:
 
 ```text
 When Jev says it is about 80% confident, is it correct about 80% of the time?
 ```
 
-`evaluate.py` now also prints calibration bins and expected calibration error for:
+Calibration is calculated for:
 
 - category confidence
 - urgency confidence derived from the predicted side of the `Noul` probability
 - severity confidence
 
-Lower expected calibration error is better. With only 50 tickets, treat this as a learning exercise and rough diagnostic rather than a statistically stable benchmark.
+Lower expected calibration error is better. With only 50 tickets, treat this as a learning diagnostic rather than a final benchmark.
 
 ## Tests
 
-The router is deterministic, so it can be tested without calling Jev:
+Run all tests:
 
 ```powershell
 python -m unittest discover
 ```
 
+The tests cover:
+
+- routing logic
+- model properties
+- labeled dataset validation
+- metrics
+- calibration
+
+## Dependencies
+
+Core dependencies are intentionally minimal:
+
+- `typesafe-sdk`
+- `pydantic`
+- `python-dotenv`
+- `streamlit`
+
 ## Documentation Notes
 
-Jev is in early access and requires an API key. The current documented HTTP endpoint is:
+Jev is in early access and requires a TypeSafe API key.
 
-```text
-POST https://api.typesafe.ai/v1/systemone
-```
-
-The official Python package is `typesafe-sdk`. The app uses `TYPESAFE_API_KEY` and `TYPESAFE_DEFAULT_MODEL`, matching the TypeSafe SDK environment variable names.
+The official Python package used here is `typesafe-sdk`. The app uses `TYPESAFE_API_KEY` and `TYPESAFE_DEFAULT_MODEL`, matching the TypeSafe SDK environment variable names.
