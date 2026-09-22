@@ -1,66 +1,108 @@
 # JevTicket
 
-JevTicket is a small support-ticket decision and routing app built for learning Jev by TypeSafe AI.
+JevTicket is a learning project for building a support-ticket decision router with **Jev by TypeSafe AI**.
 
-It demonstrates this workflow:
+It takes a customer-support message, asks Jev for typed decisions, then uses normal Python code to route and escalate the ticket.
 
-```text
-support ticket -> Jev decisions -> Python routing -> evaluation metrics
+## App Flow
+
+```mermaid
+flowchart LR
+    A[Customer support message] --> B[Jev state]
+    B --> C{Jev decisions}
+    C --> D[Choice: category]
+    C --> E[Noul: urgency]
+    C --> F[Score: severity]
+    D --> G[Python router]
+    E --> H[Display urgency]
+    F --> I[Python escalation rule]
+    G --> J[Support queue]
+    I --> K{Escalate?}
+    K -->|Yes| L[Escalation flag]
+    K -->|No| M[Normal handling]
 ```
 
-## What It Does
+## Responsibility Split
 
-Given a customer-support message, the app asks Jev three typed questions:
+```mermaid
+flowchart TB
+    subgraph Jev["Jev / TypeSafe AI"]
+        A1[Read ticket state]
+        A2[Choose category]
+        A3[Estimate urgency probability]
+        A4[Score severity]
+    end
 
-- `Choice`: classify the ticket category
-- `Noul`: estimate whether the ticket is urgent
-- `Score`: rate severity on a 1 to 5 scale
+    subgraph Python["Normal Python"]
+        B1[Load config]
+        B2[Validate typed outputs]
+        B3[Route by category]
+        B4[Escalate if severity is 4 or 5]
+        B5[Render CLI and Streamlit UI]
+        B6[Evaluate metrics and calibration]
+    end
 
-The allowed categories are:
-
-- `BILLING`
-- `TECHNICAL`
-- `SALES`
-- `GENERAL`
-
-Normal Python code then routes the ticket:
-
-- `BILLING` -> `billing-support`
-- `TECHNICAL` -> `technical-support`
-- `SALES` -> `sales`
-- `GENERAL` -> `general-support`
-
-Normal Python code also decides escalation:
-
-- displayed severity `4` or `5` -> escalate
-- displayed severity `1`, `2`, or `3` -> do not escalate
-
-## Project Structure
-
-```text
-JevTicket/
-├── app.py
-├── streamlit_app.py
-├── jev_client.py
-├── models.py
-├── router.py
-├── config.py
-├── evaluation_data.py
-├── evaluate.py
-├── metrics.py
-├── calibration.py
-├── data/
-│   └── labeled_tickets.json
-├── tests/
-│   ├── test_calibration.py
-│   ├── test_evaluation_data.py
-│   ├── test_metrics.py
-│   ├── test_models.py
-│   └── test_router.py
-├── requirements.txt
-├── .env.example
-└── README.md
+    Jev --> Python
 ```
+
+## Decisions
+
+| Decision | Jev type | Output | Used for |
+| --- | --- | --- | --- |
+| Category | `Choice` | `BILLING`, `TECHNICAL`, `SALES`, `GENERAL` | Routing |
+| Urgency | `Noul` | probability from `0` to `1` | Displaying urgent `YES` or `NO` |
+| Severity | `Score` | level converted to `1..5` | Escalation |
+
+## Routing Rules
+
+```mermaid
+flowchart TD
+    A[Category] --> B{Value}
+    B -->|BILLING| C[billing-support]
+    B -->|TECHNICAL| D[technical-support]
+    B -->|SALES| E[sales]
+    B -->|GENERAL| F[general-support]
+
+    G[Displayed severity] --> H{Severity >= 4?}
+    H -->|Yes| I[Escalate]
+    H -->|No| J[Do not escalate]
+```
+
+## Project Map
+
+```mermaid
+flowchart LR
+    A[app.py] --> C[jev_client.py]
+    B[streamlit_app.py] --> C
+    C --> D[models.py]
+    A --> E[router.py]
+    B --> E
+    F[evaluate.py] --> C
+    F --> G[evaluation_data.py]
+    F --> H[metrics.py]
+    F --> I[calibration.py]
+    G --> J[data/labeled_tickets.json]
+    K[tests/] --> D
+    K --> E
+    K --> G
+    K --> H
+    K --> I
+```
+
+## File Guide
+
+| File | Purpose |
+| --- | --- |
+| `app.py` | Terminal demo app |
+| `streamlit_app.py` | Streamlit UI |
+| `jev_client.py` | TypeSafe SDK integration |
+| `models.py` | Categories, severity rubric, typed decision model |
+| `router.py` | Deterministic category routing and escalation |
+| `data/labeled_tickets.json` | 50 labeled examples |
+| `evaluate.py` | Runs Jev on the labeled dataset |
+| `metrics.py` | Accuracy, precision, recall, F1 |
+| `calibration.py` | Calibration bins and expected calibration error |
+| `tests/` | Unit tests |
 
 ## Setup
 
@@ -85,7 +127,7 @@ TYPESAFE_API_KEY=your_typesafe_api_key_here
 
 Never commit `.env`; it is ignored by `.gitignore`.
 
-## Run
+## Run The App
 
 Terminal version:
 
@@ -118,43 +160,18 @@ Escalate: YES
 Route to the billing support team.
 ```
 
-If Jev returns confidence or probability information, the app prints it. The app does not fabricate confidence values.
+## Evaluation Flow
 
-## Jev Concepts Used
-
-The Jev-specific code lives in `jev_client.py`.
-
-It sends:
-
-- `state`: the support ticket text
-- `Choice`: category decision
-- `Noul`: urgency probability
-- `Score`: severity rating
-
-The normal Python code handles:
-
-- loading `.env`
-- validating returned values
-- routing tickets
-- deciding escalation
-- rendering terminal and Streamlit output
-- calculating evaluation metrics
-
-One important detail: the TypeSafe SDK reports `Score` levels as zero-based indexes for the rubric. This project converts them to the learning scale `1..5`.
-
-## Evaluation Dataset
-
-`data/labeled_tickets.json` contains 50 hand-labeled support tickets. Each example includes:
-
-- `ticket_id`
-- `message`
-- expected `category`
-- expected `urgent` label
-- expected `severity`
-
-The dataset is used for evaluation only. It does not train Jev or change Jev's decisions.
-
-## Evaluation Metrics
+```mermaid
+flowchart LR
+    A[50 labeled tickets] --> B[evaluate.py]
+    B --> C[Jev predictions]
+    C --> D[Compare to labels]
+    D --> E[Accuracy]
+    D --> F[Precision / Recall / F1]
+    D --> G[Severity within-one accuracy]
+    D --> H[Calibration bins]
+```
 
 Run the full labeled evaluation:
 
@@ -168,17 +185,16 @@ Run a smaller smoke evaluation:
 python evaluate.py --limit 5
 ```
 
-The evaluator reports:
+The evaluator reports metrics for:
 
-- category accuracy, precision, recall, and F1
-- urgency accuracy, precision, recall, and F1
-- severity accuracy, precision, recall, and F1
-- escalation accuracy, precision, recall, and F1
+- category
+- urgency
+- severity
+- escalation
 - severity within-one accuracy
+- confidence calibration
 
-## Calibration Analysis
-
-The evaluator also reports calibration bins and expected calibration error.
+## Calibration
 
 Calibration asks:
 
@@ -186,11 +202,15 @@ Calibration asks:
 When Jev says it is about 80% confident, is it correct about 80% of the time?
 ```
 
-Calibration is calculated for:
-
-- category confidence
-- urgency confidence derived from the predicted side of the `Noul` probability
-- severity confidence
+```mermaid
+flowchart TD
+    A[Jev confidence] --> B[Group into confidence bins]
+    C[Correct / incorrect predictions] --> B
+    B --> D[Average confidence per bin]
+    B --> E[Actual accuracy per bin]
+    D --> F[Expected calibration error]
+    E --> F
+```
 
 Lower expected calibration error is better. With only 50 tickets, treat this as a learning diagnostic rather than a final benchmark.
 
@@ -202,25 +222,11 @@ Run all tests:
 python -m unittest discover
 ```
 
-The tests cover:
+The tests cover routing, models, labeled data, metrics, and calibration.
 
-- routing logic
-- model properties
-- labeled dataset validation
-- metrics
-- calibration
+## Notes
 
-## Dependencies
-
-Core dependencies are intentionally minimal:
-
-- `typesafe-sdk`
-- `pydantic`
-- `python-dotenv`
-- `streamlit`
-
-## Documentation Notes
-
-Jev is in early access and requires a TypeSafe API key.
-
-The official Python package used here is `typesafe-sdk`. The app uses `TYPESAFE_API_KEY` and `TYPESAFE_DEFAULT_MODEL`, matching the TypeSafe SDK environment variable names.
+- Jev is in early access and requires a TypeSafe API key.
+- The official Python package used here is `typesafe-sdk`.
+- The app uses `TYPESAFE_API_KEY` and `TYPESAFE_DEFAULT_MODEL`.
+- The TypeSafe SDK reports `Score` levels as zero-based indexes; this project converts them to the learning scale `1..5`.
